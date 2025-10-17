@@ -1,0 +1,1245 @@
+openapi: 3.0.3
+info:
+  title: Innovator-App API
+  version: v1
+  description: API documentation for Innovator-App Project 🚀
+paths:
+  /api/v1/articles/:
+    get:
+      operationId: api_v1_articles_list
+      description: |-
+        API endpoint for listing articles with filtering, searching and ordering.
+
+        Supports:
+        - Filtering by publication date, access type, language
+        - Searching in name, annotation, doi
+        - Ordering by creation date, publication date, view count
+        - Pagination
+      parameters:
+      - in: query
+        name: access_type
+        schema:
+          type: integer
+          enum:
+          - -10
+          - 10
+        description: |-
+          * `10` - Public
+          * `-10` - Private
+      - in: query
+        name: co_authors
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        explode: true
+        style: form
+      - in: query
+        name: language
+        schema:
+          type: string
+          enum:
+          - en
+          - ru
+          - uz
+        description: |-
+          * `en` - English
+          * `ru` - Russian
+          * `uz` - Uzbek
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -created_at
+          - -publication_date
+          - -updated_at
+          - -view_count
+          - created_at
+          - publication_date
+          - updated_at
+          - view_count
+        description: Order by field
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: publication_date
+        schema:
+          type: string
+          format: date
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: study_fields
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        explode: true
+        style: form
+      - in: query
+        name: tags
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        explode: true
+        style: form
+      tags:
+      - Articles
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedArticleListList'
+          description: ''
+  /api/v1/articles/{id}/:
+    get:
+      operationId: api_v1_articles_retrieve
+      description: |-
+        API endpoint for retrieving a single article with all details.
+
+        Returns:
+        - Full article details including name, annotation, content
+        - Related authors, study fields, and tags
+        - Creation and update timestamps
+        - Creator and updater information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Articles
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+          description: ''
+  /api/v1/auth/get/anonym/token/:
+    get:
+      operationId: api_v1_auth_get_anonym_token_retrieve
+      description: Generates and returns a JWT token in the response.
+      tags:
+      - Authentication
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/science/callback/:
+    get:
+      operationId: api_v1_auth_science_callback_retrieve
+      description: Handles GET requests for the OAuth callback, processes the code,
+        and returns JWT tokens.
+      tags:
+      - Authentication
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/science/url/:
+    post:
+      operationId: api_v1_auth_science_url_create
+      description: Validates the request data and returns the OAuth URL.
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScienceIDOauthGetUrlRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ScienceIDOauthGetUrlRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ScienceIDOauthGetUrlRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/token/check_access/:
+    post:
+      operationId: api_v1_auth_token_check_access_create
+      description: Validates and saves the data, returning the result in JSON format.
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckAccessRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckAccessRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckAccessRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckAccess'
+          description: ''
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: api_v1_auth_token_refresh_create
+      description: |-
+        CustomTokenRefreshView handles JWT access token refresh requests.
+
+        This view extends both TokenRefreshView from SimpleJWT and CustomGenericAPIView to provide
+        customized token refresh logic along with additional API view features.
+
+            serializer_class (CustomTokenRefreshSerializer): The serializer responsible for validating
+                and processing the refresh token.
+
+        Methods:
+            Inherits all methods from TokenRefreshView and CustomGenericAPIView.
+
+        Usage:
+            Accepts POST requests containing a valid refresh token and returns a new access token
+            if the refresh token is valid.
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenRefreshRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomTokenRefresh'
+          description: ''
+  /api/v1/authors/:
+    get:
+      operationId: api_v1_authors_list
+      description: |-
+        API endpoint for listing authors with filtering, searching and ordering.
+
+        Supports:
+        - Filtering by creation date
+        - Searching in fullname and science_id
+        - Ordering by creation date, fullname
+        - Pagination
+      parameters:
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -created_at
+          - -fullname
+          - -updated_at
+          - created_at
+          - fullname
+          - updated_at
+        description: Order by field
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Authors
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuthorListList'
+          description: ''
+  /api/v1/authors/{id}/:
+    get:
+      operationId: api_v1_authors_retrieve
+      description: |-
+        API endpoint for retrieving a single author with all details.
+
+        Returns:
+        - Full author details including fullname, image, science_id
+        - Creation and update timestamps
+        - Creator and updater information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Authors
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Author'
+          description: ''
+  /api/v1/cover-pages/:
+    get:
+      operationId: api_v1_cover_pages_retrieve
+      description: |-
+        API endpoint for retrieving the cover page.
+
+        Since only one CoverPage instance is allowed in the system, this endpoint
+        returns the first (and only) CoverPage object without requiring an ID
+        parameter in the URL.
+
+        This view extends CustomRetrieveAPIView to leverage the base functionality
+        while providing a custom get_object method that retrieves the single CoverPage instance.
+      tags:
+      - Cover_pages
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverPage'
+          description: ''
+  /api/v1/news/:
+    get:
+      operationId: api_v1_news_list
+      description: |-
+        API endpoint for listing news with filtering, searching and ordering.
+
+        Supports:
+        - Filtering by creation date
+        - Searching in title and content
+        - Ordering by creation date
+        - Pagination
+      parameters:
+      - in: query
+        name: created_after
+        schema:
+          type: string
+          format: date-time
+        description: 'Filter news created after this date (ISO format: YYYY-MM-DDTHH:MM:SS)'
+      - in: query
+        name: created_before
+        schema:
+          type: string
+          format: date-time
+        description: 'Filter news created before this date (ISO format: YYYY-MM-DDTHH:MM:SS)'
+      - in: query
+        name: created_this_month
+        schema:
+          type: boolean
+        description: Filter news created this month (true/false)
+      - in: query
+        name: created_this_week
+        schema:
+          type: boolean
+        description: Filter news created this week (true/false)
+      - in: query
+        name: created_today
+        schema:
+          type: boolean
+        description: Filter news created today (true/false)
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - News
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNewsListList'
+          description: ''
+  /api/v1/news/{id}/:
+    get:
+      operationId: api_v1_news_retrieve
+      description: |-
+        API endpoint for retrieving a single news item with all details.
+
+        Returns:
+        - Full news details including title, content, images
+        - Related images with ordering
+        - Creation and update timestamps
+        - Creator and updater information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - News
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+          description: ''
+  /api/v1/study-fields/:
+    get:
+      operationId: api_v1_study_fields_list
+      description: |-
+        API endpoint for listing study fields with filtering, searching and ordering.
+
+        Supports:
+        - Filtering by creation date
+        - Searching in name field
+        - Ordering by creation date, name
+        - Pagination
+      parameters:
+      - in: query
+        name: ordering
+        schema:
+          type: string
+          enum:
+          - -created_at
+          - -name
+          - -updated_at
+          - created_at
+          - name
+          - updated_at
+        description: Order by field
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: per_page
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Study_fields
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudyFieldListList'
+          description: ''
+  /api/v1/study-fields/{id}/:
+    get:
+      operationId: api_v1_study_fields_retrieve
+      description: |-
+        API endpoint for retrieving a single study field with all details.
+
+        Returns:
+        - Full study field details including name
+        - Creation and update timestamps
+        - Creator and updater information
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Study_fields
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudyField'
+          description: ''
+  /api/v1/users/profile/:
+    get:
+      operationId: api_v1_users_profile_retrieve
+      description: |-
+        API endpoint for user profile management.
+
+        This view handles:
+        - GET: Retrieve current user's profile information
+
+        Authentication is required for all operations.
+
+        Endpoint: GET /api/v1/users/profile/
+
+        Returns:
+            - 200: User profile data
+            - 401: Authentication required
+            - 500: Internal server error
+      tags:
+      - Users
+      security:
+      - BearerAuth: []
+      - jwtAuth: []
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+components:
+  schemas:
+    AccessTypeEnum:
+      enum:
+      - 10
+      - -10
+      type: integer
+      description: |-
+        * `10` - Public
+        * `-10` - Private
+    Article:
+      type: object
+      description: Serializer for Article model with full details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name: {}
+        publication_date:
+          type: string
+          format: date
+          nullable: true
+        co_authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorList'
+          readOnly: true
+        access_type:
+          allOf:
+          - $ref: '#/components/schemas/AccessTypeEnum'
+          minimum: -32768
+          maximum: 32767
+        study_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudyFieldList'
+          readOnly: true
+        language:
+          $ref: '#/components/schemas/LanguageEnum'
+        annotation: {}
+        content_file:
+          type: string
+          format: uri
+          nullable: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagList'
+          readOnly: true
+        doi:
+          type: string
+          nullable: true
+          maxLength: 255
+        view_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - access_type
+      - annotation
+      - co_authors
+      - created_at
+      - id
+      - language
+      - name
+      - study_fields
+      - tags
+      - updated_at
+    ArticleList:
+      type: object
+      description: Simplified serializer for Article list view.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name: {}
+        publication_date:
+          type: string
+          format: date
+          nullable: true
+        co_authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorList'
+          readOnly: true
+        access_type:
+          allOf:
+          - $ref: '#/components/schemas/AccessTypeEnum'
+          minimum: -32768
+          maximum: 32767
+        study_fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudyFieldList'
+          readOnly: true
+        language:
+          $ref: '#/components/schemas/LanguageEnum'
+        annotation: {}
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagList'
+          readOnly: true
+        doi:
+          type: string
+          nullable: true
+          maxLength: 255
+        view_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - access_type
+      - annotation
+      - co_authors
+      - created_at
+      - id
+      - language
+      - name
+      - study_fields
+      - tags
+    Author:
+      type: object
+      description: Serializer for Author model with full details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        fullname:
+          type: string
+          maxLength: 256
+        image:
+          type: string
+          format: uri
+          nullable: true
+        science_id:
+          type: string
+          maxLength: 30
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - fullname
+      - id
+      - science_id
+      - updated_at
+    AuthorList:
+      type: object
+      description: Simplified serializer for Author list view.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        fullname:
+          type: string
+          maxLength: 256
+        image:
+          type: string
+          format: uri
+          nullable: true
+        science_id:
+          type: string
+          maxLength: 30
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - fullname
+      - id
+      - science_id
+    CheckAccess:
+      type: object
+      description: |-
+        CheckAccessSerializer is responsible for validating the access token and determining
+        whether the user has access. It extends the CustomSerializer class and includes the
+        following fields:
+        Attributes:
+            access_token (serializers.CharField): The access token provided by the user.
+            access (serializers.BooleanField): A read-only field indicating whether the user has access.
+      properties:
+        access_token:
+          type: string
+        access:
+          type: boolean
+          readOnly: true
+          default: false
+      required:
+      - access
+      - access_token
+    CheckAccessRequest:
+      type: object
+      description: |-
+        CheckAccessSerializer is responsible for validating the access token and determining
+        whether the user has access. It extends the CustomSerializer class and includes the
+        following fields:
+        Attributes:
+            access_token (serializers.CharField): The access token provided by the user.
+            access (serializers.BooleanField): A read-only field indicating whether the user has access.
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+      required:
+      - access_token
+    CoverPage:
+      type: object
+      description: Serializer for CoverPage model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        background_image:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - background_image
+      - created_at
+      - id
+      - title
+      - updated_at
+    CustomTokenRefresh:
+      type: object
+      description: |-
+        Custom serializer for refreshing JWT tokens that adds additional user information to the access token and response.
+
+        This serializer extends the default `TokenRefreshSerializer` to:
+        - Inject extra user-related claims into the refreshed access token, including:
+            - role
+            - fullname
+            - phone_number
+            - science_id
+            - email
+            - region (if applicable)
+            - is_staff
+            - is_active
+            - is_superuser
+        - Add the user's display role, fullname, phone number, science ID, and email to the response payload.
+
+        Returns:
+            dict: Contains the refreshed access token with added user claims, and user details in the response.
+      properties:
+        refresh:
+          type: string
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    CustomTokenRefreshRequest:
+      type: object
+      description: |-
+        Custom serializer for refreshing JWT tokens that adds additional user information to the access token and response.
+
+        This serializer extends the default `TokenRefreshSerializer` to:
+        - Inject extra user-related claims into the refreshed access token, including:
+            - role
+            - fullname
+            - phone_number
+            - science_id
+            - email
+            - region (if applicable)
+            - is_staff
+            - is_active
+            - is_superuser
+        - Add the user's display role, fullname, phone number, science ID, and email to the response payload.
+
+        Returns:
+            dict: Contains the refreshed access token with added user claims, and user details in the response.
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    LanguageEnum:
+      enum:
+      - en
+      - ru
+      - uz
+      type: string
+      description: |-
+        * `en` - English
+        * `ru` - Russian
+        * `uz` - Uzbek
+    News:
+      type: object
+      description: Serializer for News model with automatic JSON field translation.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title: {}
+        content: {}
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsImage'
+          readOnly: true
+        view_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - id
+      - images
+      - title
+      - updated_at
+    NewsImage:
+      type: object
+      description: Serializer for NewsImage model.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          nullable: true
+        ordering:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - ordering
+      - updated_at
+    NewsList:
+      type: object
+      description: Simplified serializer for News list view with automatic JSON field
+        translation.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title: {}
+        content: {}
+        images_count:
+          type: string
+          readOnly: true
+        first_image:
+          type: string
+          readOnly: true
+        view_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - first_image
+      - id
+      - images_count
+      - title
+      - updated_at
+    PaginatedArticleListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleList'
+    PaginatedAuthorListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorList'
+    PaginatedNewsListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewsList'
+    PaginatedStudyFieldListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudyFieldList'
+    ScienceIDOauthGetUrlRequest:
+      type: object
+      description: |-
+        Serializer for generating the ScienceID OAuth authorization URL.
+
+        This serializer accepts a redirect URL and returns an object containing the generated authorization URL
+        for the ScienceID OAuth flow.
+
+        Fields:
+            redirect_url (str): The URL to which the user will be redirected after authentication.
+      properties:
+        redirect_url:
+          type: string
+          format: uri
+          writeOnly: true
+          minLength: 1
+      required:
+      - redirect_url
+    StudyField:
+      type: object
+      description: Serializer for StudyField model with full details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    StudyFieldList:
+      type: object
+      description: Simplified serializer for StudyField list view.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    TagList:
+      type: object
+      description: Simplified serializer for Tag list view.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 256
+          pattern: ^[-a-zA-Z0-9_]+$
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    UserProfile:
+      type: object
+      description: |-
+        Serializer for User profile with full details.
+        Used for retrieving and updating user profile information.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        fullname:
+          type: string
+          maxLength: 256
+        phone_number:
+          type: string
+          maxLength: 15
+        science_id:
+          type: string
+          maxLength: 30
+        science_image:
+          type: string
+          maxLength: 512
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - fullname
+      - id
+      - phone_number
+      - science_id
+      - updated_at
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+- url: http://192.168.100.127
