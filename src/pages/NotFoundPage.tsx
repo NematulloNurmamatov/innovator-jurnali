@@ -25,9 +25,9 @@ const NotFoundPage: React.FC = () => {
                     <p className="text-xl text-gray-600 dark:text-gray-400 mb-2">
                         Kechirasiz, siz qidirgan sahifa mavjud emas
                     </p>
-                    <p className="text-gray-500 dark:text-gray-500">
+                    {/* <p className="text-gray-500 dark:text-gray-500">
                         Sahifa o'chirilgan, ko'chirilgan yoki noto'g'ri manzil kiritilgan bo'lishi mumkin
-                    </p>
+                    </p> */}
                 </div>
             </div>
         </div>

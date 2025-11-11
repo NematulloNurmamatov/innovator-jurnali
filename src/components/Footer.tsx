@@ -4,8 +4,8 @@ import { BookOpen, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin }
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="bg-gray-900 text-white py-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 ">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-2">

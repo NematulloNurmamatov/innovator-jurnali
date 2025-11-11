@@ -3,7 +3,7 @@ import JournalsSection from '../components/JournalsSection';
 
 const JournalsPage: React.FC = () => {
   return (
-    <div className="py-12">
+    <div className="container my-12">
       <JournalsSection />
     </div>
   );

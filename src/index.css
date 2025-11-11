@@ -1,2 +1,9 @@
 @config "../tailwind.config.ts";
 @import "tailwindcss";
+
+.container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
